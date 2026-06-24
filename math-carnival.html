@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🎪 Math Carnival</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;}
+body{background:#080818;color:#fff;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow:hidden;touch-action:manipulation;}
+
+/* ── HUB ── */
+#hub{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;gap:14px;}
+.hub-title{font-size:clamp(30px,7vw,52px);font-weight:900;text-align:center;background:linear-gradient(90deg,#ff6fff,#00ffcc,#fff200);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;}
+.hub-sub{color:#666;font-size:17px;margin-bottom:6px;}
+.hub-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;width:100%;max-width:680px;}
+.hub-btn{border:none;border-radius:22px;padding:22px 16px;cursor:pointer;font-size:19px;font-weight:900;color:#000;text-align:center;min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:transform .1s;box-shadow:0 4px 24px rgba(0,0,0,.5);touch-action:manipulation;}
+.hub-btn:active{transform:scale(.95);}
+.hub-btn span.ico{font-size:32px;}
+
+/* ── GAME AREA ── */
+#game-area{display:none;min-height:100vh;padding:16px;flex-direction:column;align-items:center;}
+#game-area.active{display:flex;}
+.back-btn{align-self:flex-start;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);border-radius:50px;padding:10px 22px;color:#ccc;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:18px;touch-action:manipulation;}
+.back-btn:active{transform:scale(.95);}
+.game-title{font-size:clamp(20px,5vw,34px);font-weight:900;text-align:center;margin-bottom:14px;}
+
+/* ── HINT + SKIP ── */
+.hint{background:rgba(255,200,0,.1);border:2px solid #ffd700;border-radius:16px;padding:14px 20px;font-size:18px;color:#ffd700;max-width:480px;width:100%;text-align:center;margin:10px auto;display:none;}
+.hint.show{display:block;}
+.skip-btn{background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.15);border-radius:50px;padding:11px 28px;color:#888;font-size:15px;font-weight:700;cursor:pointer;touch-action:manipulation;margin-top:8px;}
+.skip-btn:active{transform:scale(.95);}
+
+/* ── NEON BUTTONS ── */
+.nbtn{border:none;border-radius:16px;padding:16px 28px;font-size:20px;font-weight:900;cursor:pointer;touch-action:manipulation;transition:transform .1s;min-height:60px;}
+.nbtn:active{transform:scale(.95);}
+.grn{background:#00ff88;color:#000;}
+.pnk{background:#ff3cac;color:#fff;}
+.blu{background:#00c3ff;color:#000;}
+.yel{background:#fff200;color:#000;}
+
+/* ── SCORE ── */
+#score-box{position:fixed;top:14px;right:14px;background:rgba(255,255,255,.08);border-radius:50px;padding:8px 16px;font-size:17px;font-weight:800;z-index:200;}
+
+/* ── CONFETTI ── */
+#conf{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;}
+
+/* ═══ GAME 1 ═══ */
+.speak-btn{background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;border:none;border-radius:50px;padding:14px 32px;font-size:20px;font-weight:800;cursor:pointer;touch-action:manipulation;display:block;margin:0 auto 16px;}
+.speak-btn:active{transform:scale(.95);}
+.blocks-area{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:10px 0;}
+.block-col{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:90px;}
+.blabel{font-size:13px;font-weight:800;color:#777;text-transform:uppercase;letter-spacing:1px;}
+.bvisual{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;min-height:56px;max-width:96px;}
+.mini-sq{width:16px;height:16px;border-radius:3px;}
+.bcount{font-size:42px;font-weight:900;min-height:52px;display:flex;align-items:center;justify-content:center;}
+.bcontrols{display:flex;gap:8px;}
+.bbtn{width:48px;height:48px;border-radius:50%;border:none;font-size:26px;font-weight:900;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;}
+
+/* ═══ GAME 2 ═══ */
+.target-big{font-size:clamp(38px,9vw,68px);font-weight:900;text-align:center;background:linear-gradient(90deg,#00ff88,#00c3ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px;}
+.bubble-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:480px;margin:0 auto;}
+.mbubble{background:rgba(255,255,255,.07);border:3px solid rgba(255,255,255,.18);border-radius:20px;padding:22px;font-size:26px;font-weight:900;text-align:center;cursor:pointer;touch-action:manipulation;transition:all .18s;min-height:76px;display:flex;align-items:center;justify-content:center;}
+.mbubble.sel{background:rgba(0,255,136,.18);border-color:#00ff88;color:#00ff88;transform:scale(1.04);}
+.mbubble.dead{opacity:.25;pointer-events:none;}
+@keyframes popOut{0%{transform:scale(1)}50%{transform:scale(1.35);opacity:.5}100%{transform:scale(0);opacity:0;}}
+.mbubble.popping{animation:popOut .3s forwards;}
+
+/* ═══ GAME 3 ═══ */
+.eq-display{font-size:clamp(42px,11vw,82px);font-weight:900;text-align:center;color:#ff6fff;text-shadow:0 0 30px #ff6fff88;margin-bottom:16px;letter-spacing:3px;}
+.float-zone{position:relative;width:100%;max-width:380px;height:280px;overflow:hidden;border:2px solid rgba(255,255,255,.08);border-radius:22px;background:rgba(255,255,255,.02);margin:0 auto;}
+.fbubble{position:absolute;width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;cursor:pointer;touch-action:manipulation;color:#000;box-shadow:0 0 16px rgba(0,0,0,.4);}
+@keyframes rise{from{bottom:-86px;}to{bottom:110%;}}
+
+/* ═══ GAME 4 ═══ */
+#clock-cv{display:block;margin:0 auto;touch-action:none;}
+.time-choices{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:20px;}
+.tbtn{background:rgba(255,255,255,.07);border:3px solid rgba(255,255,255,.18);border-radius:18px;padding:18px 24px;font-size:26px;font-weight:900;cursor:pointer;touch-action:manipulation;transition:all .15s;color:#fff;min-width:110px;text-align:center;}
+.tbtn:active{transform:scale(.95);}
+
+/* ═══ GAME 5 ═══ */
+.prob-display{font-size:clamp(42px,11vw,82px);font-weight:900;text-align:center;color:#fff200;text-shadow:0 0 28px rgba(255,242,0,.45);margin-bottom:28px;letter-spacing:3px;}
+.nl-wrap{width:100%;max-width:540px;margin:0 auto;padding:0 20px;}
+.nl-labels{display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px;color:#666;}
+.nl-track{position:relative;height:62px;background:rgba(255,255,255,.07);border-radius:31px;touch-action:none;cursor:pointer;}
+.nl-fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#7c3aed,#a855f7);border-radius:31px;}
+.nl-marker{position:absolute;top:50%;transform:translate(-50%,-50%);width:62px;height:62px;background:#fff200;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:900;color:#000;box-shadow:0 0 22px rgba(255,242,0,.75);cursor:grab;touch-action:none;}
+.nl-tick{position:absolute;top:-12px;transform:translateX(-50%);font-size:11px;color:#555;}
+</style>
+</head>
+<body>
+
+<canvas id="conf"></canvas>
+<div id="score-box">⭐ 0</div>
+
+<!-- ══ HUB ══ -->
+<div id="hub">
+  <div class="hub-title">🎪 Math Carnival!</div>
+  <div class="hub-sub">Pick any game — switch whenever you want! ✨</div>
+  <div class="hub-grid">
+    <button class="hub-btn" style="background:linear-gradient(135deg,#a855f7,#7c3aed)" onclick="go(1)">
+      <span class="ico">🚀</span>Base 10 Rocket
+    </button>
+    <button class="hub-btn" style="background:linear-gradient(135deg,#00ff88,#00c3ff)" onclick="go(2)">
+      <span class="ico">🎯</span>Target 20 &amp; 30
+    </button>
+    <button class="hub-btn" style="background:linear-gradient(135deg,#ff3cac,#ff6fff)" onclick="go(3)">
+      <span class="ico">🫧</span>Double Trouble
+    </button>
+    <button class="hub-btn" style="background:linear-gradient(135deg,#ffd700,#ff8c00)" onclick="go(4)">
+      <span class="ico">🕐</span>Tick-Tock Match
+    </button>
+    <button class="hub-btn" style="background:linear-gradient(135deg,#00c3ff,#7c3aed)" onclick="go(5)">
+      <span class="ico">🎚️</span>Neon Slider
+    </button>
+  </div>
+</div>
+
+<!-- ══ GAME AREA ══ -->
+<div id="game-area">
+  <button class="back-btn" onclick="goHub()">← Back to Carnival</button>
+  <div id="gc"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// AUDIO
+// ═══════════════════════════════════════════
+const AC = new (window.AudioContext || window.webkitAudioContext)();
+const wake = () => { if (AC.state === 'suspended') AC.resume(); };
+
+function ding() {
+  wake();
+  [523,659,784,1047].forEach((f,i) => {
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.connect(g); g.connect(AC.destination);
+    o.type = 'sine'; o.frequency.value = f;
+    const t = AC.currentTime + i * 0.1;
+    g.gain.setValueAtTime(0.28, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
+    o.start(t); o.stop(t + 0.4);
+  });
+}
+function bloop() {
+  wake();
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  o.type = 'sine';
+  o.frequency.setValueAtTime(220, AC.currentTime);
+  o.frequency.exponentialRampToValueAtTime(100, AC.currentTime + 0.32);
+  g.gain.setValueAtTime(0.22, AC.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.35);
+  o.start(); o.stop(AC.currentTime + 0.36);
+}
+function pop() {
+  wake();
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  o.type = 'triangle';
+  o.frequency.setValueAtTime(700, AC.currentTime);
+  o.frequency.exponentialRampToValueAtTime(150, AC.currentTime + 0.16);
+  g.gain.setValueAtTime(0.35, AC.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.18);
+  o.start(); o.stop(AC.currentTime + 0.19);
+}
+
+// ═══════════════════════════════════════════
+// CONFETTI
+// ═══════════════════════════════════════════
+const cc = document.getElementById('conf');
+const cx2 = cc.getContext('2d');
+let cp = [], crun = false;
+function szConf() { cc.width = innerWidth; cc.height = innerHeight; }
+szConf(); window.addEventListener('resize', szConf);
+
+function confetti() {
+  const pal = ['#ff3cac','#00ff88','#00c3ff','#fff200','#ff6fff','#a855f7','#ff8c00','#00ffcc'];
+  for (let i = 0; i < 90; i++) cp.push({
+    x: Math.random() * cc.width, y: -12,
+    r: Math.random() * 9 + 4,
+    c: pal[i % pal.length],
+    vx: (Math.random() - 0.5) * 7,
+    vy: Math.random() * 4.5 + 2,
+    rot: Math.random() * 360,
+    rs: (Math.random() - 0.5) * 9,
+    life: 1
+  });
+  if (!crun) animC();
+}
+function animC() {
+  crun = true;
+  cx2.clearRect(0, 0, cc.width, cc.height);
+  cp.forEach(p => {
+    p.x += p.vx; p.y += p.vy; p.rot += p.rs; p.life -= 0.013;
+    cx2.save();
+    cx2.globalAlpha = Math.max(0, p.life);
+    cx2.translate(p.x, p.y);
+    cx2.rotate(p.rot * Math.PI / 180);
+    cx2.fillStyle = p.c;
+    cx2.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 1.7);
+    cx2.restore();
+  });
+  cp = cp.filter(p => p.life > 0 && p.y < cc.height + 20);
+  if (cp.length) requestAnimationFrame(animC);
+  else { crun = false; cx2.clearRect(0, 0, cc.width, cc.height); }
+}
+
+// ═══════════════════════════════════════════
+// SCORE
+// ═══════════════════════════════════════════
+let score = 0;
+const scorebox = document.getElementById('score-box');
+function pts(n = 1) { score += n; scorebox.textContent = '⭐ ' + score; }
+
+// ═══════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════
+let curGame = 0, timers = [];
+const clearT = () => { timers.forEach(t => { clearTimeout(t); clearInterval(t); }); timers = []; };
+const later = (fn, ms) => { const t = setTimeout(fn, ms); timers.push(t); return t; };
+const every = (fn, ms) => { const t = setInterval(fn, ms); timers.push(t); return t; };
+
+function goHub() {
+  clearT();
+  if (speechSynthesis) speechSynthesis.cancel();
+  document.getElementById('hub').style.display = 'flex';
+  document.getElementById('game-area').classList.remove('active');
+}
+function go(n) {
+  clearT();
+  if (speechSynthesis) speechSynthesis.cancel();
+  curGame = n;
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game-area').classList.add('active');
+  const gc = document.getElementById('gc');
+  gc.innerHTML = '';
+  [, g1init, g2init, g3init, g4init, g5init][n](gc);
+}
+
+// ═══════════════════════════════════════════
+// GAME 1 — BASE 10 ROCKET
+// ═══════════════════════════════════════════
+const g1pool = [
+  {h:1,t:0,o:3},{h:2,t:4,o:3},{h:1,t:1,o:5},{h:3,t:0,o:2},
+  {h:2,t:2,o:0},{h:1,t:0,o:0},{h:3,t:3,o:3},{h:1,t:5,o:0},
+  {h:2,t:0,o:7},{h:1,t:2,o:4},{h:2,t:1,o:0},{h:1,t:4,o:1}
+];
+const numWords = (h,t,o) => {
+  const on=['','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+  const tn=['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+  let pts=[];
+  if(h) pts.push(on[h]+' hundred');
+  const tot=t*10+o;
+  if(tot===0){}
+  else if(tot<20) pts.push(on[tot]);
+  else { let s=tn[t]; if(o) s+=' '+on[o]; pts.push(s); }
+  return pts.join(' and ')||'zero';
+};
+let g1t=null, g1c={h:0,t:0,o:0};
+
+function g1init(gc) {
+  gc.innerHTML = `
+    <div class="game-title">🚀 Base 10 Rocket</div>
+    <button class="speak-btn" id="g1sp">🔊 Hear the Number!</button>
+    <div class="blocks-area">
+      ${[['h','Hundreds','#ff6fff'],['t','Tens','#00ff88'],['o','Ones','#00c3ff']].map(([k,lbl,col])=>`
+        <div class="block-col">
+          <div class="blabel">${lbl}</div>
+          <div class="bvisual" id="gv${k}"></div>
+          <div class="bcount" id="gc${k}" style="color:${col}">0</div>
+          <div class="bcontrols">
+            <button class="bbtn" style="background:${col};color:#000" onclick="g1adj('${k}',1)">+</button>
+            <button class="bbtn" style="background:rgba(255,255,255,.1)" onclick="g1adj('${k}',-1)">−</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="hint" id="g1h"></div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:12px">
+      <button class="nbtn grn" onclick="g1chk()">✓ Check!</button>
+      <button class="skip-btn" onclick="g1next()">Skip →</button>
+    </div>
+  `;
+  document.getElementById('g1sp').onclick = g1speak;
+  g1next();
+}
+function g1next() {
+  g1t = g1pool[Math.floor(Math.random()*g1pool.length)];
+  g1c = {h:0,t:0,o:0};
+  g1draw();
+  document.getElementById('g1h').classList.remove('show');
+  later(g1speak, 400);
+}
+function g1speak() {
+  if (!g1t) return;
+  wake();
+  const w = 'Find ' + numWords(g1t.h, g1t.t, g1t.o);
+  if ('speechSynthesis' in window) {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(w);
+    u.rate = 0.82; u.pitch = 1.15;
+    speechSynthesis.speak(u);
+  }
+}
+function g1adj(k, d) {
+  wake();
+  g1c[k] = Math.max(0, Math.min(9, g1c[k] + d));
+  g1draw();
+}
+function g1draw() {
+  [['h','#ff6fff'],['t','#00ff88'],['o','#00c3ff']].forEach(([k,col]) => {
+    document.getElementById('gc'+k).textContent = g1c[k];
+    const vis = document.getElementById('gv'+k);
+    vis.innerHTML = '';
+    for (let i = 0; i < g1c[k]; i++) {
+      const sq = document.createElement('div');
+      sq.className = 'mini-sq';
+      sq.style.cssText = `background:${col};box-shadow:0 0 5px ${col};`;
+      vis.appendChild(sq);
+    }
+  });
+}
+function g1chk() {
+  wake();
+  if (!g1t) return;
+  const ok = g1c.h===g1t.h && g1c.t===g1t.t && g1c.o===g1t.o;
+  const h = document.getElementById('g1h');
+  if (ok) {
+    ding(); confetti(); pts();
+    h.style.cssText='border-color:#00ff88;color:#00ff88;';
+    h.textContent = '🚀 BLAST OFF! You got it!';
+    h.classList.add('show');
+    later(g1next, 1900);
+  } else {
+    bloop();
+    const total = g1t.h*100 + g1t.t*10 + g1t.o;
+    h.style.cssText='border-color:#ffd700;color:#ffd700;';
+    h.textContent = `💡 Hint: ${total} = ${g1t.h} hundreds, ${g1t.t} tens, ${g1t.o} ones. Try adjusting!`;
+    h.classList.add('show');
+  }
+}
+
+// ═══════════════════════════════════════════
+// GAME 2 — TARGET 20 & 30
+// ═══════════════════════════════════════════
+const g2bank = {
+  10: [{e:'5+5',c:true},{e:'3+7',c:true},{e:'8+4',c:false},{e:'9+3',c:false}],
+  15: [{e:'10+5',c:true},{e:'20-5',c:true},{e:'9+4',c:false},{e:'8+9',c:false}],
+  20: [{e:'10+10',c:true},{e:'25-5',c:true},{e:'8+9',c:false},{e:'15+4',c:false}],
+  25: [{e:'20+5',c:true},{e:'30-5',c:true},{e:'13+9',c:false},{e:'20+4',c:false}],
+  30: [{e:'20+10',c:true},{e:'35-5',c:true},{e:'16+12',c:false},{e:'25+6',c:false}]
+};
+const g2tgts = [10,15,20,25,30];
+let g2tgt=20, g2probs=[], g2sel=new Set();
+
+function g2init(gc) {
+  gc.innerHTML = `
+    <div class="game-title">🎯 Target 20 &amp; 30</div>
+    <div class="target-big" id="g2td">Target: 20</div>
+    <div style="color:#666;text-align:center;font-size:15px;margin-bottom:14px">Tap ALL bubbles that equal the target!</div>
+    <div class="bubble-grid" id="g2g"></div>
+    <div class="hint" id="g2h"></div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:14px">
+      <button class="nbtn grn" onclick="g2chk()">✓ Check!</button>
+      <button class="skip-btn" onclick="g2next()">Skip →</button>
+    </div>
+  `;
+  g2next();
+}
+function g2next() {
+  g2tgt = g2tgts[Math.floor(Math.random()*g2tgts.length)];
+  g2probs = [...g2bank[g2tgt]].sort(() => Math.random()-.5);
+  g2sel = new Set();
+  document.getElementById('g2td').textContent = 'Target: ' + g2tgt;
+  document.getElementById('g2h').classList.remove('show');
+  const grid = document.getElementById('g2g');
+  grid.innerHTML = '';
+  g2probs.forEach((p,i) => {
+    const b = document.createElement('div');
+    b.className = 'mbubble';
+    b.textContent = p.e;
+    b.onclick = () => {
+      wake();
+      if (g2sel.has(i)) { g2sel.delete(i); b.classList.remove('sel'); }
+      else { g2sel.add(i); b.classList.add('sel'); pop(); }
+    };
+    grid.appendChild(b);
+  });
+}
+function g2chk() {
+  wake();
+  const correctIdxs = new Set(g2probs.map((p,i)=>p.c?i:-1).filter(i=>i>=0));
+  const ok = [...correctIdxs].every(i=>g2sel.has(i)) && [...g2sel].every(i=>correctIdxs.has(i));
+  const h = document.getElementById('g2h');
+  if (ok) {
+    ding(); confetti(); pts();
+    h.style.cssText='border-color:#00ff88;color:#00ff88;';
+    h.textContent='🎯 Bulls-eye! You found them all!';
+    h.classList.add('show');
+    later(g2next, 1900);
+  } else {
+    bloop();
+    const ans = g2probs.filter(p=>p.c).map(p=>p.e).join(' and ');
+    h.style.cssText='border-color:#ffd700;color:#ffd700;';
+    h.textContent=`💡 Hint: The ones equal to ${g2tgt} are: ${ans}`;
+    h.classList.add('show');
+  }
+}
+
+// ═══════════════════════════════════════════
+// GAME 3 — DOUBLE TROUBLE POP
+// ═══════════════════════════════════════════
+const g3db = [
+  {q:'1 + 1 = ?',a:2},{q:'2 + 2 = ?',a:4},{q:'3 + 3 = ?',a:6},
+  {q:'4 + 4 = ?',a:8},{q:'5 + 5 = ?',a:10},{q:'6 + 6 = ?',a:12},
+  {q:'7 + 7 = ?',a:14},{q:'8 + 8 = ?',a:16},{q:'9 + 9 = ?',a:18},
+  {q:'10 + 10 = ?',a:20}
+];
+const g3cols = ['#ff3cac','#00ff88','#00c3ff','#fff200','#ff6fff','#ffa500'];
+let g3cur=null, g3alive=true, g3btimers=[];
+
+function g3init(gc) {
+  gc.innerHTML = `
+    <div class="game-title">🫧 Double Trouble Pop!</div>
+    <div class="eq-display" id="g3eq">? + ? = ?</div>
+    <div class="float-zone" id="g3z"></div>
+    <div class="hint" id="g3h"></div>
+    <button class="skip-btn" style="display:block;margin:12px auto 0" onclick="g3next()">Skip →</button>
+  `;
+  g3next();
+}
+function g3next() {
+  g3btimers.forEach(t => clearTimeout(t));
+  g3btimers = [];
+  g3alive = true;
+  g3cur = g3db[Math.floor(Math.random()*g3db.length)];
+  const eq = document.getElementById('g3eq');
+  if (eq) eq.textContent = g3cur.q;
+  const hint = document.getElementById('g3h');
+  if (hint) hint.classList.remove('show');
+  const zone = document.getElementById('g3z');
+  if (!zone) return;
+  zone.innerHTML = '';
+
+  const wrongs = new Set();
+  while (wrongs.size < 3) {
+    const w = Math.floor(Math.random()*21);
+    if (w !== g3cur.a) wrongs.add(w);
+  }
+  const opts = [...wrongs, g3cur.a].sort(() => Math.random()-.5);
+
+  opts.forEach((num, i) => {
+    const t = setTimeout(() => {
+      const zone2 = document.getElementById('g3z');
+      if (!zone2 || !g3alive) return;
+      const b = document.createElement('div');
+      b.className = 'fbubble';
+      const col = g3cols[Math.floor(Math.random()*g3cols.length)];
+      b.style.cssText = `background:${col};left:${10+Math.random()*65}%;animation:rise ${7+Math.random()*3}s linear forwards;box-shadow:0 0 14px ${col}88;`;
+      b.textContent = num;
+      b.ontouchstart = b.onclick = (e) => { e.preventDefault(); wake(); g3tap(num, b); };
+      zone2.appendChild(b);
+      const rt = setTimeout(() => { if (b.parentNode) b.remove(); }, 10000);
+      g3btimers.push(rt);
+    }, i * 700 + 200);
+    g3btimers.push(t);
+  });
+}
+function g3tap(num, el) {
+  if (!g3alive) return;
+  if (num === g3cur.a) {
+    g3alive = false;
+    el.style.transform='scale(1.6)'; el.style.opacity='0'; el.style.transition='all .25s';
+    ding(); confetti(); pts();
+    later(g3next, 1600);
+  } else {
+    bloop();
+    el.style.opacity='0.2'; el.style.pointerEvents='none';
+    const h = document.getElementById('g3h');
+    if (!h) return;
+    h.style.cssText='border-color:#ffd700;color:#ffd700;';
+    h.textContent=`💡 Hint: ${g3cur.q.replace('?','...')} Think: what plus itself equals ${g3cur.a}?`;
+    h.classList.add('show');
+  }
+}
+
+// ═══════════════════════════════════════════
+// GAME 4 — TICK-TOCK MATCH
+// ═══════════════════════════════════════════
+let g4time = {h:12,m:0};
+
+function g4init(gc) {
+  gc.innerHTML = `
+    <div class="game-title">🕐 Tick-Tock Match</div>
+    <div style="color:#666;font-size:15px;text-align:center;margin-bottom:12px">What time is the clock showing?</div>
+    <canvas id="clock-cv" width="220" height="220" style="touch-action:none;"></canvas>
+    <div class="time-choices" id="g4ch"></div>
+    <div class="hint" id="g4h"></div>
+    <button class="skip-btn" style="display:block;margin:12px auto 0" onclick="g4next()">Skip →</button>
+  `;
+  g4next();
+}
+function drawClock(h, m) {
+  const cv = document.getElementById('clock-cv');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = 220, H = 220, cx = 110, cy = 110, R = 104;
+  ctx.clearRect(0,0,W,H);
+
+  // face
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
+  ctx.fillStyle='#12122a'; ctx.fill();
+  ctx.strokeStyle='#a855f7'; ctx.lineWidth=4; ctx.stroke();
+
+  // tick marks & numbers
+  for (let i=1;i<=12;i++) {
+    const a = (i/12)*Math.PI*2 - Math.PI/2;
+    const big = i%3===0;
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.cos(a)*(R-(big?16:8)), cy+Math.sin(a)*(R-(big?16:8)));
+    ctx.lineTo(cx+Math.cos(a)*(R-3), cy+Math.sin(a)*(R-3));
+    ctx.strokeStyle=big?'#ffffff':'#444'; ctx.lineWidth=big?2.5:1.5; ctx.stroke();
+    if (big) {
+      ctx.fillStyle='#ccc'; ctx.font='bold 14px sans-serif';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(i, cx+Math.cos(a)*(R-26), cy+Math.sin(a)*(R-26));
+    }
+  }
+
+  // hour hand
+  const ha = ((h%12 + m/60)/12)*Math.PI*2 - Math.PI/2;
+  ctx.beginPath(); ctx.moveTo(cx,cy);
+  ctx.lineTo(cx+Math.cos(ha)*58, cy+Math.sin(ha)*58);
+  ctx.strokeStyle='#ffffff'; ctx.lineWidth=6; ctx.lineCap='round'; ctx.stroke();
+
+  // minute hand
+  const ma = (m/60)*Math.PI*2 - Math.PI/2;
+  ctx.beginPath(); ctx.moveTo(cx,cy);
+  ctx.lineTo(cx+Math.cos(ma)*82, cy+Math.sin(ma)*82);
+  ctx.strokeStyle='#00ff88'; ctx.lineWidth=4; ctx.lineCap='round'; ctx.stroke();
+
+  // center
+  ctx.beginPath(); ctx.arc(cx,cy,7,0,Math.PI*2);
+  ctx.fillStyle='#ff6fff'; ctx.fill();
+}
+const g4fmt = (h,m) => `${h}:${m===0?'00':'30'}`;
+
+function g4next() {
+  g4time = {h:Math.ceil(Math.random()*12), m:[0,30][Math.floor(Math.random()*2)]};
+  document.getElementById('g4h').classList.remove('show');
+  drawClock(g4time.h, g4time.m);
+
+  const correct = g4fmt(g4time.h, g4time.m);
+  const wrongs = new Set();
+  const hours = [1,2,3,4,5,6,7,8,9,10,11,12];
+  while (wrongs.size < 2) {
+    const wh = hours[Math.floor(Math.random()*12)];
+    const wm = [0,30][Math.floor(Math.random()*2)];
+    const w = g4fmt(wh,wm);
+    if (w !== correct) wrongs.add(w);
+  }
+  const choices = [...wrongs, correct].sort(()=>Math.random()-.5);
+  const div = document.getElementById('g4ch');
+  div.innerHTML = '';
+  choices.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'tbtn'; b.textContent = c;
+    b.onclick = () => g4pick(c, correct, b);
+    div.appendChild(b);
+  });
+}
+function g4pick(chosen, correct, el) {
+  wake();
+  if (chosen === correct) {
+    el.style.cssText='background:rgba(0,255,136,.25);border-color:#00ff88;color:#00ff88;transform:scale(1.05);';
+    ding(); confetti(); pts();
+    later(g4next, 1600);
+  } else {
+    bloop();
+    el.style.opacity='0.3'; el.style.pointerEvents='none';
+    const h = document.getElementById('g4h');
+    h.style.cssText='border-color:#ffd700;color:#ffd700;';
+    h.textContent='💡 Hint: The short white hand = hour. The long green hand = minutes. 12 at top = :00, 6 at bottom = :30';
+    h.classList.add('show');
+  }
+}
+
+// ═══════════════════════════════════════════
+// GAME 5 — NEON SLIDER
+// ═══════════════════════════════════════════
+const g5pool = [
+  {q:'8 + 7 = ?',a:15},{q:'14 − 6 = ?',a:8},{q:'9 + 9 = ?',a:18},
+  {q:'13 − 5 = ?',a:8},{q:'7 + 8 = ?',a:15},{q:'16 − 7 = ?',a:9},
+  {q:'6 + 9 = ?',a:15},{q:'11 − 4 = ?',a:7},{q:'8 + 8 = ?',a:16},
+  {q:'12 − 5 = ?',a:7},{q:'9 + 6 = ?',a:15},{q:'17 − 8 = ?',a:9},
+  {q:'4 + 9 = ?',a:13},{q:'15 − 7 = ?',a:8},{q:'5 + 8 = ?',a:13},
+  {q:'10 − 3 = ?',a:7},{q:'20 − 8 = ?',a:12},{q:'3 + 9 = ?',a:12},
+  {q:'6 + 6 = ?',a:12},{q:'18 − 9 = ?',a:9},{q:'7 + 7 = ?',a:14}
+];
+let g5p=null, g5val=0, g5drag=false;
+
+function g5init(gc) {
+  gc.innerHTML = `
+    <div class="game-title">🎚️ Neon Slider</div>
+    <div class="prob-display" id="g5pd">? = ?</div>
+    <div class="nl-wrap">
+      <div class="nl-labels"><span>0</span><span>5</span><span>10</span><span>15</span><span>20</span></div>
+      <div class="nl-track" id="g5tr">
+        <div class="nl-fill" id="g5fi" style="width:0%"></div>
+        <div class="nl-marker" id="g5mk" style="left:0%">0</div>
+      </div>
+    </div>
+    <div class="hint" id="g5h"></div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:18px">
+      <button class="nbtn yel" onclick="g5sub()">🔒 Lock It In!</button>
+      <button class="skip-btn" onclick="g5next()">Skip →</button>
+    </div>
+  `;
+  g5next();
+  g5setup();
+}
+function g5next() {
+  g5p = g5pool[Math.floor(Math.random()*g5pool.length)];
+  const pd = document.getElementById('g5pd');
+  if (pd) pd.textContent = g5p.q;
+  const h = document.getElementById('g5h');
+  if (h) h.classList.remove('show');
+  g5val = 0; g5move(0);
+}
+function g5move(v) {
+  g5val = Math.max(0, Math.min(20, Math.round(v)));
+  const pct = (g5val/20)*100;
+  const mk = document.getElementById('g5mk');
+  const fi = document.getElementById('g5fi');
+  if (mk) { mk.style.left = pct+'%'; mk.textContent = g5val; }
+  if (fi) fi.style.width = pct+'%';
+}
+function g5getVal(clientX) {
+  const tr = document.getElementById('g5tr');
+  if (!tr) return 0;
+  const rect = tr.getBoundingClientRect();
+  return ((clientX - rect.left) / rect.width) * 20;
+}
+function g5setup() {
+  const tr = document.getElementById('g5tr');
+  if (!tr) return;
+  tr.addEventListener('mousedown', e => { wake(); g5drag=true; g5move(g5getVal(e.clientX)); });
+  window.addEventListener('mousemove', e => { if(g5drag) g5move(g5getVal(e.clientX)); });
+  window.addEventListener('mouseup', () => { g5drag=false; });
+  tr.addEventListener('touchstart', e => { wake(); g5drag=true; g5move(g5getVal(e.touches[0].clientX)); }, {passive:true});
+  tr.addEventListener('touchmove', e => { if(g5drag){ g5move(g5getVal(e.touches[0].clientX)); e.preventDefault(); } }, {passive:false});
+  tr.addEventListener('touchend', () => { g5drag=false; });
+}
+function g5sub() {
+  wake();
+  if (!g5p) return;
+  const h = document.getElementById('g5h');
+  if (g5val === g5p.a) {
+    ding(); confetti(); pts();
+    h.style.cssText='border-color:#00ff88;color:#00ff88;';
+    h.textContent='🌟 Perfect! ' + g5p.q.replace('?', g5p.a);
+    h.classList.add('show');
+    later(g5next, 1900);
+  } else {
+    bloop();
+    h.style.cssText='border-color:#ffd700;color:#ffd700;';
+    h.textContent=`💡 Hint: The answer is ${g5val < g5p.a ? 'higher' : 'lower'} than ${g5val}. Slide and try again!`;
+    h.classList.add('show');
+  }
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+document.addEventListener('click', wake, {once:true});
+document.addEventListener('touchstart', wake, {once:true});
+</script>
+</body>
+</html>
