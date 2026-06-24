@@ -50,8 +50,12 @@ body{background:#080818;color:#fff;font-family:'Segoe UI',system-ui,sans-serif;m
 .blocks-area{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:10px 0;}
 .block-col{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:90px;}
 .blabel{font-size:13px;font-weight:800;color:#777;text-transform:uppercase;letter-spacing:1px;}
-.bvisual{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;min-height:56px;max-width:96px;}
-.mini-sq{width:16px;height:16px;border-radius:3px;}
+.bvisual{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;align-items:flex-end;min-height:80px;max-width:120px;}
+.b-hundred{width:36px;height:36px;border-radius:4px;position:relative;overflow:hidden;}
+.b-hundred::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(to right,rgba(0,0,0,.2) 0px,rgba(0,0,0,.2) 1px,transparent 1px,transparent 3.6px),repeating-linear-gradient(to bottom,rgba(0,0,0,.2) 0px,rgba(0,0,0,.2) 1px,transparent 1px,transparent 3.6px);}
+.b-ten{width:10px;height:36px;border-radius:3px;position:relative;overflow:hidden;}
+.b-ten::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(to bottom,rgba(0,0,0,.2) 0px,rgba(0,0,0,.2) 1px,transparent 1px,transparent 3.6px);}
+.b-one{width:12px;height:12px;border-radius:2px;}
 .bcount{font-size:42px;font-weight:900;min-height:52px;display:flex;align-items:center;justify-content:center;}
 .bcontrols{display:flex;gap:8px;}
 .bbtn{width:48px;height:48px;border-radius:50%;border:none;font-size:26px;font-weight:900;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;}
@@ -307,14 +311,15 @@ function g1adj(k, d) {
   g1draw();
 }
 function g1draw() {
+  const shapes = {h:'b-hundred', t:'b-ten', o:'b-one'};
   [['h','#ff6fff'],['t','#00ff88'],['o','#00c3ff']].forEach(([k,col]) => {
     document.getElementById('gc'+k).textContent = g1c[k];
     const vis = document.getElementById('gv'+k);
     vis.innerHTML = '';
     for (let i = 0; i < g1c[k]; i++) {
       const sq = document.createElement('div');
-      sq.className = 'mini-sq';
-      sq.style.cssText = `background:${col};box-shadow:0 0 5px ${col};`;
+      sq.className = shapes[k];
+      sq.style.cssText = `background:${col};box-shadow:0 0 6px ${col};`;
       vis.appendChild(sq);
     }
   });
